@@ -35,10 +35,31 @@ namespace Mezcal.Connections
             }
         }
 
+        public static void AppendToFile(JToken jToken, string filename)
+        {
+            if (jToken == null) { Console.WriteLine("JSONFile - Nothing to write"); return; }
+
+            using (StreamWriter file = File.AppendText(filename))
+            using (JsonTextWriter writer = new JsonTextWriter(file))
+            {
+                jToken.WriteTo(writer);
+            }
+        }
+
         public static string GetText(JToken jToken, string propertyName)
         {
             if (jToken[propertyName] == null) { return null; }
             else { return jToken[propertyName].ToString(); }
+        }
+
+        public static int? GetInt32(JToken jToken, string propertyName)
+        {
+            int? result = null;
+
+            var s = GetText(jToken, propertyName);
+            if (s != null) { result = Int32.Parse(s); }
+
+            return result;
         }
     }
 }

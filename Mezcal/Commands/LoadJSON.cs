@@ -11,13 +11,13 @@ namespace Mezcal.Commands
         public void Process(JObject command, Context context)
         {
             string file = command["file"].ToString();
-            string into = command["into"].ToString();
+            string set = command["set"].ToString();
 
             file = context.ReplaceVariables(file);
 
-            Console.WriteLine("Loading JSON File {0} into {1}", file, into);
+            //Console.WriteLine("Loading JSON File {0} into {1}", file, set);
             var sub = JSONUtil.ReadFile(file);
-            context.Store(into, sub);
+            context.Store(set, sub);
         }
 
         public JObject Prompt(CommandEngine commandEngine)

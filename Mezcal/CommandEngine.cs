@@ -3,17 +3,40 @@ using Mezcal.Connections;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mezcal
 {
     public class CommandEngine
     {
         private Context _context;
-        private List<IModule> Modules { get; set; }
+        public List<IModule> Modules { get; set; }
+
+        public Context Context {get {return this._context;} }
 
         public CommandEngine()
         {
             this.InitEngine();
+        }
+
+        public CommandEngine(string configPath)
+        {
+            this.InitEngine();
+
+            var configFile = JSONUtil.ReadFile(configPath);
+
+            var variables = configFile["variables"];
+
+            if (variables != null)
+            {
+                foreach(JObject variable in variables)
+                {
+                    var varProp = variable.Properties().FirstOrDefault();
+                    var varKey = varProp.Name;
+                    var varValue = varProp.Value;
+                    this._context.Variables.Add(varKey, varValue);
+                }
+            }
         }
 
         public CommandEngine(string configPath, List<IModule> modules)
@@ -54,6 +77,9 @@ namespace Mezcal
             this._context.CommandEngine = this;
             this.Modules = new List<IModule>();
             this.Modules.Add(new CoreModule());
+
+            string appPath = AppContext.BaseDirectory + @"..\..";
+            this._context.Variables.Add("$appPath", appPath);
         }
         public void RunCommandLine()
         {
@@ -61,19 +87,30 @@ namespace Mezcal
 
             while (loop)
             {
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(": ");
                 string script = Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.White;
 
                 if (script.Trim().Length == 0) { continue; }
                 if (script == "exit") { break; }
 
-                string[] scriptParts = script.Split(' ');
-                string commandName = scriptParts[0];
+                var jCommand = new JObject();
+                jCommand.Add("command", "run-rules");
+                var joInput = new JObject();
+                joInput.Add("input", script);
+                jCommand.Add("query", joInput);
 
-                ICommand comm = ResolveCommand(commandName);
-                var jCommand = comm.Prompt(this);
+                //string[] scriptParts = script.Split(' ');
+                //string commandName = scriptParts[0];
+
+                //ICommand comm = ResolveCommand(commandName);
+                //if (comm == null) { Console.WriteLine($"Command '{commandName}' does not resolve."); continue; }
+                //var jCommand = comm.Prompt(this);
 
                 RunCommand(jCommand, this._context);
+
+                Console.WriteLine();
             }
         }
 

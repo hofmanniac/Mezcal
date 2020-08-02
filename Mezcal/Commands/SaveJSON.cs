@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Mezcal.Connections;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,13 +12,18 @@ namespace Mezcal.Commands
         {
             string file = CommandEngine.GetCommandArgument(command, "file");
             string source = CommandEngine.GetCommandArgument(command, "source");
+            string mode = JSONUtil.GetText(command, "mode");
+            var rawItem = command["item"];
 
             file = context.ReplaceVariables(file);
 
-            JToken sourceToken = (JToken)context.Fetch(source);
+            JToken item = null;
+            if (source != null) { item = (JToken)context.Fetch(source); }
+            else if (rawItem != null) { item = rawItem; }
 
-            Console.WriteLine("Saving {0} as {1}", source, file);
-            Connections.JSONUtil.WriteFile(sourceToken, file);
+            //Console.WriteLine("Saving {0} as {1}", source, file);
+            if (mode == "append") { JSONUtil.AppendToFile(item, file); }
+            else { JSONUtil.WriteFile(item, file); }
         }
 
         public JObject Prompt(CommandEngine commandEngine)
@@ -27,6 +33,8 @@ namespace Mezcal.Commands
 
             commandEngine.PromptForArgument(command, "file");
             commandEngine.PromptForArgument(command, "source");
+            commandEngine.PromptForArgument(command, "item");
+            commandEngine.PromptForArgument(command, "mode");
 
             return command;
         }
