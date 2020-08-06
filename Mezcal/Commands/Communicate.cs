@@ -10,12 +10,35 @@ namespace Mezcal.Commands
     {
         public void Process(JObject command, Context context)
         {
-            var text = JSONUtil.GetText(command, "communicate");
-            if (text == null) { text = JSONUtil.GetText(command, "#communicate"); }
+            // get default property
+            var item = JSONUtil.GetToken(command, "communicate");
+            if (item == null) { item = JSONUtil.GetToken(command, "#communicate"); }
 
-            text = context.ReplaceVariables(text);
+            // get all other properties
+            var select = JSONUtil.GetText(command, "select");
+            var rate = JSONUtil.GetInt32(command, "rate");
 
-            Console.WriteLine(text);
+            item = context.ReplaceVariables(item);
+
+            if (select != null)
+            {
+                item = item.SelectToken(select);
+            }
+
+            if (rate != null)
+            {
+                var iRate = (int)rate; // get it? :)
+                foreach(char c in item.ToString())
+                {
+                    Console.Write(c);
+                    System.Threading.Thread.Sleep(iRate);
+                }
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine(item);
+            }
         }
 
         public JObject Prompt(CommandEngine commandEngine)

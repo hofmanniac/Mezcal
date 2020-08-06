@@ -20,6 +20,45 @@ namespace Mezcal
             this.Variables = new Dictionary<string, JToken>();
         }
 
+        public JToken ReplaceVariables(JToken jtItem)
+        {
+            if (jtItem.Type == JTokenType.Array)
+            {
+                var jaItem = (JArray)jtItem;
+                JArray result = new JArray();
+                foreach(var item in jaItem)
+                {
+                    result.Add(this.ReplaceVariables(item));
+                }
+                return result;
+            }
+            else if (jtItem.Type == JTokenType.Object)
+            {
+                var joItem = (JObject)jtItem;
+                JObject result = new JObject();
+                foreach(var prop in joItem.Properties())
+                {
+                    result.Add(prop.Name, this.ReplaceVariables(prop.Value));
+                }
+                return result;
+            }
+            else if (jtItem.Type == JTokenType.String)
+            {
+                var sItem = (String)jtItem;
+                if (sItem.StartsWith("?"))
+                {
+                    var storedItem = (JToken)this.Fetch(sItem);
+                    return this.ReplaceVariables(storedItem);
+                }
+                else
+                {
+                    return this.ReplaceVariables(sItem);
+                }
+            }
+
+            return null;
+        }
+
         public string ReplaceVariables(string text)
         {
             foreach (var item in this.Variables)
