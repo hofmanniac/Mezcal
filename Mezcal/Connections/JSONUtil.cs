@@ -46,10 +46,36 @@ namespace Mezcal.Connections
             }
         }
 
-        public static string GetText(JToken jToken, string propertyName)
+        public static JToken GetToken(JToken jToken, string propertyName)
         {
             if (jToken[propertyName] == null) { return null; }
+            else { return jToken[propertyName]; }
+        }
+
+        public static string GetText(JToken jToken, string propertyName)
+        {
+            if (jToken.Type == JTokenType.Array) { return null; }
+
+            if (jToken[propertyName] == null) { return null; }
             else { return jToken[propertyName].ToString(); }
+        }
+
+        public static string GetCommandName(JToken jToken)
+        {
+            string result = JSONUtil.GetText(jToken, "command");
+
+            if (result == null)
+            {
+                var jtFirst = jToken.First;
+                if (jtFirst != null)
+                {
+                    var jpFirst = (JProperty)jtFirst;
+                    var sFirst = jpFirst.Name.ToString();
+                    if (sFirst.StartsWith("#")) { result = sFirst.Substring(1); }
+                }
+            }
+
+            return result;
         }
 
         public static int? GetInt32(JToken jToken, string propertyName)

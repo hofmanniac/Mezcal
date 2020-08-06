@@ -108,41 +108,42 @@ namespace Mezcal
                 //if (comm == null) { Console.WriteLine($"Command '{commandName}' does not resolve."); continue; }
                 //var jCommand = comm.Prompt(this);
 
-                RunCommand(jCommand, this._context);
+                this.RunCommand(jCommand, this._context);
 
                 Console.WriteLine();
             }
         }
 
-        private ICommand ResolveCommand(string commandName)
+        public void RunCommand(JObject command, Context context)
+        {
+            //if (command["command"] == null) { return; }
+            //string commandName = command["command"].ToString();
+
+            ICommand comm = ResolveCommand(command);
+            if (comm == null) { return; }
+
+            try
+            {
+                comm.Process(command, context);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CommandEngine: Error running {command} - {ex.Message}.");
+            }
+        }
+
+        private ICommand ResolveCommand(JObject joCommand)
         {
             ICommand result = null;
 
             foreach (var module in this.Modules)
             {
-                result = module.ResolveCommand(commandName);
+                result = module.ResolveCommand(joCommand);
                 if (result != null) { break; }
             }
 
             return result;
-        }
-
-        public void RunCommand(JObject command, Context context)
-        {
-            if (command["command"] == null) { return; }
-            string commandName = command["command"].ToString();
-
-            ICommand comm = ResolveCommand(commandName);
-
-            try
-            {              
-                if (comm != null) { comm.Process(command, context); }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"CommandEngine: Error running {commandName} - {ex.Message}.");
-            }
-        }
+        }   
 
         public static string GetCommandArgument(JObject command, string argName)
         {

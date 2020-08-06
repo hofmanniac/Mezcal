@@ -48,14 +48,30 @@ namespace Mezcal
 
         public void Store(string key, object value, bool overwrite = true)
         {
-            if (this.Items.ContainsKey(key)) { if (overwrite == true) { this.Items[key] = value; } }
-            else { this.Items.Add(key, value); }
+            if (key.StartsWith("?"))
+            {
+                if (this.Variables.ContainsKey(key)) { if (overwrite == true) { this.Variables[key] = JToken.FromObject(value); } }
+                else { this.Variables.Add(key, JToken.FromObject(value)); }
+            }
+            else
+            {
+                if (this.Items.ContainsKey(key)) { if (overwrite == true) { this.Items[key] = value; } }
+                else { this.Items.Add(key, value); }
+            }
         }
 
         public object Fetch(string key)
         {
-            if (this.Items.ContainsKey(key)) { return this.Items[key]; }
-            else { return null; }
+            if (key.StartsWith("?"))
+            {
+                if (this.Variables.ContainsKey(key)) { return this.Variables[key]; }
+                else { return null; }
+            }
+            else
+            {
+                if (this.Items.ContainsKey(key)) { return this.Items[key]; }
+                else { return null; }
+            }
         }
     }
 }

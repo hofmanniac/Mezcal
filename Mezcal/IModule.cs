@@ -1,5 +1,6 @@
 ﻿using Mezcal.Commands;
 using Mezcal.Connections;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,6 +11,6 @@ namespace Mezcal
     {
         IConnection ProvideConnection(ConnectionConfig envConfig);
 
-        ICommand ResolveCommand(string commandName);
+        ICommand ResolveCommand(JObject joCommand);
     }
 }

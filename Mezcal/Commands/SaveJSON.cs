@@ -10,15 +10,17 @@ namespace Mezcal.Commands
     {
         public void Process(JObject command, Context context)
         {
-            string file = CommandEngine.GetCommandArgument(command, "file");
-            string source = CommandEngine.GetCommandArgument(command, "source");
+            var file = JSONUtil.GetText(command, "#save-json");
+            if (file == null) { file = JSONUtil.GetText(command, "file"); }
+
+            string set = CommandEngine.GetCommandArgument(command, "set");
             string mode = JSONUtil.GetText(command, "mode");
             var rawItem = command["item"];
 
             file = context.ReplaceVariables(file);
 
             JToken item = null;
-            if (source != null) { item = (JToken)context.Fetch(source); }
+            if (set != null) { item = (JToken)context.Fetch(set); }
             else if (rawItem != null) { item = rawItem; }
 
             //Console.WriteLine("Saving {0} as {1}", source, file);

@@ -209,6 +209,10 @@ namespace Mezcal
                 {
                     result = unification[words[0]].ToString();
                 }
+                else
+                {
+                    result = s;
+                }
             }
             else
             {
