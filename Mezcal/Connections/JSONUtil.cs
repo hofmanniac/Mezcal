@@ -55,9 +55,21 @@ namespace Mezcal.Connections
         public static string GetText(JToken jToken, string propertyName)
         {
             if (jToken.Type == JTokenType.Array) { return null; }
+            if (jToken.Type == JTokenType.Property)
+            {
+                var jpToken = (JProperty)jToken;
+                if (jpToken.Name == propertyName)
+                {
+                    return jpToken.Value.ToString();
+                }
+            }
+            else
+            {
+                if (jToken[propertyName] == null) { return null; }
+                else { return jToken[propertyName].ToString(); }
+            }
 
-            if (jToken[propertyName] == null) { return null; }
-            else { return jToken[propertyName].ToString(); }
+            return null;
         }
 
         public static string GetCommandName(JToken jToken)

@@ -16,6 +16,7 @@ namespace Mezcal.Commands
 
             // get all other properties
             var set = JSONUtil.GetText(command, "set");
+            if (set == null) { set = Guid.NewGuid().ToString(); }
 
             // apply variables to properties (do this when getting property instead?)
             file = context.ReplaceVariables(file);

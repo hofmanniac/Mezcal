@@ -1,13 +1,67 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Mezcal
 {
-    public class Text
+    public class Unification
     {
+        public static JObject Unify(JToken term1, JToken term2)
+        {
+            if (term1 == null && term2 == null) { return new JObject(); }
+            if (term1 == null || term2 == null) { return null; }
+
+            // https://www.javatpoint.com/ai-unification-in-first-order-logic 
+
+            //Step. 1: If Ψ1 or Ψ2 is a variable or constant, then:
+            if (term1.Type == JTokenType.String || term2.Type == JTokenType.String)
+            {
+                var sTerm1 = term1.ToString();
+                var sTerm2 = term2.ToString();
+
+                //return Text.TextbookUnifyStrings(sTerm1, sTerm2);
+                return Unify(sTerm1, sTerm2);
+            }
+            else if (term1.Type == JTokenType.Object && term2.Type == JTokenType.Object)
+            {
+                var joTerm1 = (JObject)term1;
+                var joTerm2 = (JObject)term2;
+
+                // Step.2: If the initial Predicate symbol in Ψ1 and Ψ2 are not same, then return FAILURE.
+                // Relaxed - JSON Objects will not have a "head" predicate argument
+
+                // Step. 3: IF Ψ1 and Ψ2 have a different number of arguments, then return FAILURE.
+                // Relaxed - Will allow term1 to match term2 as long as term1 contains all arguments
+                // that are in term2 (term1 may contain more arguments than term2). Arguments will be
+                // matched by name
+
+                //Step. 4: Set Substitution set(SUBST) to NIL. 
+                JObject subSet = new JObject();
+
+                //Step. 5: For i = 1 to the number of elements in Ψ1.
+                foreach (var prop in joTerm2.Properties())
+                {
+                    //	a) Call Unify function with the ith element of Ψ1 and ith element of Ψ2, and put the result into S.
+                    var jtTest1 = joTerm1[prop.Name];
+                    if (jtTest1 == null) { return null; }
+
+                    //	b) If S = failure then returns Failure
+                    var subSet2 = Unify(jtTest1, prop.Value);
+                    if (subSet2 == null) { return null; }
+                    //	c) If S ≠ NIL then do,
+                    else if (subSet2.Properties().Count() > 0) { subSet.Merge(subSet2); }
+                }
+
+                return subSet;
+            }
+
+            return null;
+        }
+
+
         /// <summary>
         /// Examples:
         /// 
@@ -29,11 +83,13 @@ namespace Mezcal
         /// <param name="m1"></param>
         /// <param name="m2"></param>
         /// <returns></returns>
-        public static JObject UnifyStrings(string m1, string m2)
+        public static JObject Unify(string m1, string m2)
         {
             if (m1 == null || m2 == null) { return null; }
 
             var result = new JObject();
+
+            if (m1.Equals(m2)) { return result; }
 
             //Console.Write("Comparing '{0}' to '{1}'...", m1, m2);
 
@@ -171,6 +227,39 @@ namespace Mezcal
                 else { result = null; }
             }
 
+            return result;
+        }
+
+        public static JObject TextbookUnify(string sTerm1, string sTerm2)
+        {
+            //	a) If Ψ1 or Ψ2 are identical, then return NIL.
+            if (sTerm1.Equals(sTerm2)) { return new JObject(); }
+
+            //	b) Else if Ψ1 is a variable,
+            else if (sTerm1.StartsWith("?") && sTerm1.Contains(" ") == false)
+            {
+                //		a. then if Ψ1 occurs in Ψ2, then return FAILURE
+                if (sTerm2.Contains(sTerm1)) { return null; }
+                //		b.Else return { (Ψ2 / Ψ1)}.
+                else { return NewSubstitution(sTerm1, sTerm2); }
+            }
+
+            //	c) Else if Ψ2 is a variable, 
+            else if (sTerm2.StartsWith("?") && sTerm2.Contains(" ") == false)
+            {
+                //		a.If Ψ2 occurs in Ψ1 then return FAILURE,
+                if (sTerm1.Contains(sTerm2)) { return null; }
+                //		b.Else return { (Ψ1 / Ψ2)}. 
+                else { return NewSubstitution(sTerm2, sTerm1); }
+            }
+            //	d) Else return FAILURE.
+            else { return null; }
+        }
+
+        private static JObject NewSubstitution(string name, JToken value)
+        {
+            var result = new JObject();
+            result.Add(name, value);
             return result;
         }
 

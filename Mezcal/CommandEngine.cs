@@ -17,6 +17,22 @@ namespace Mezcal
         public CommandEngine()
         {
             this.InitEngine();
+
+            // look for init.json in .exe path
+            var exePath = AppContext.BaseDirectory;
+            var initFile = JSONUtil.ReadFile(exePath + "\\init.json");
+            if (initFile != null) // if it's there
+            {
+                this._context.Store("#init", initFile);
+
+                var joCommand = new JObject();
+                joCommand.Add("command", "run-rules");
+                var joQuery = new JObject();
+                joQuery.Add("#event", "engine-init");
+                joCommand.Add("query", joQuery);
+
+                this.RunCommand(joCommand, this._context);
+            }
         }
 
         public CommandEngine(string configPath)
@@ -81,6 +97,7 @@ namespace Mezcal
             string appPath = AppContext.BaseDirectory + @"..\..";
             this._context.Variables.Add("$appPath", appPath);
         }
+
         public void RunCommandLine()
         {
             bool loop = true;
@@ -111,6 +128,17 @@ namespace Mezcal
                 this.RunCommand(jCommand, this._context);
 
                 Console.WriteLine();
+            }
+        }
+
+        public void RunCommand(JToken jtCommand, Context context)
+        {
+            if (jtCommand is JObject jCommand)
+            {
+                //if (jCommand["output"] != null) { Console.WriteLine(jCommand["output"]); }
+                //else { context.CommandEngine.RunCommand(jCommand, context); }
+
+                this.RunCommand(jCommand, context);
             }
         }
 

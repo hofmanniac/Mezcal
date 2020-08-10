@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Mezcal.Connections;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,11 +10,12 @@ namespace Mezcal.Commands
     {
         public void Process(JObject command, Context context)
         {
-            string file = command["script"].ToString();
+            string file = JSONUtil.GetText(command, "#run-script");
+            if (file == null) { file = command["script"].ToString(); }
 
             file = context.ReplaceVariables(file);
 
-            JArray items = (JArray)Connections.JSONUtil.ReadFile(file);
+            JArray items = (JArray)JSONUtil.ReadFile(file);
 
             if (items == null)
             {

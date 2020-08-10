@@ -26,6 +26,7 @@ namespace Mezcal
             else if (commandName == "ui-prompt") { result = new UIPrompt(); }
             else if (commandName == "run-script") { result = new RunScript(); }
             else if (commandName == "communicate") { result = new Communicate(); }
+            else if (commandName == "run-rules") { return new RunRules(); }
 
             return result;
         }

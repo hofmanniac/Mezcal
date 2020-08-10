@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Mezcal
@@ -8,16 +9,18 @@ namespace Mezcal
     public class Context
     {
         private readonly Dictionary<string, object> Connections = null;
-        private readonly Dictionary<string, object> Items = null;
+        public readonly Dictionary<string, object> Items = null;
         public object DefaultConnection { get; set; }
         public readonly Dictionary<string, JToken> Variables = null;
         public CommandEngine CommandEngine = null;
+        public int TraceLevel {get; set;}
 
         public Context()
         {
             this.Items = new Dictionary<string, object>();
             this.Connections = new Dictionary<string, object>();
             this.Variables = new Dictionary<string, JToken>();
+            this.TraceLevel = 0;
         }
 
         public JToken ReplaceVariables(JToken jtItem)
@@ -57,6 +60,13 @@ namespace Mezcal
             }
 
             return null;
+        }
+
+        public void Trace(string text, int level = 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(text);
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         public string ReplaceVariables(string text)
