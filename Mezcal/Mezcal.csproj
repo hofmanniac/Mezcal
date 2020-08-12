@@ -7,12 +7,10 @@
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/hofmanniac/Mezcal</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageReleaseNotes>Ability to use default properties in commands;
-Ability to RunRules; 
-Ability to use init.json file to bootstrap rules;
-Unification algorithms</PackageReleaseNotes>
+    <PackageReleaseNotes>Ability to SetVariable;
+Enhancements to Unification to allow for full object unification and apply variables recursively.</PackageReleaseNotes>
     <Copyright>2020</Copyright>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
