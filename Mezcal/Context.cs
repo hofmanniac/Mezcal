@@ -9,7 +9,7 @@ namespace Mezcal
     public class Context
     {
         private readonly Dictionary<string, object> Connections = null;
-        public readonly Dictionary<string, object> Items = null;
+        public readonly Dictionary<string, JToken> Items = null;
         public object DefaultConnection { get; set; }
         public readonly Dictionary<string, JToken> Variables = null;
         public CommandEngine CommandEngine = null;
@@ -17,7 +17,7 @@ namespace Mezcal
 
         public Context()
         {
-            this.Items = new Dictionary<string, object>();
+            this.Items = new Dictionary<string, JToken>();
             this.Connections = new Dictionary<string, object>();
             this.Variables = new Dictionary<string, JToken>();
             this.TraceLevel = 0;
@@ -25,6 +25,8 @@ namespace Mezcal
 
         public JToken ReplaceVariables(JToken jtItem)
         {
+            if (jtItem == null) { return null; }
+
             if (jtItem.Type == JTokenType.Array)
             {
                 var jaItem = (JArray)jtItem;
@@ -83,6 +85,56 @@ namespace Mezcal
             return text;
         }
 
+        public JToken Query(JToken query)
+        {
+            var result = new JArray();
+
+            if (query.Type == JTokenType.Object)
+            {
+                var joQuery = (JObject)query;
+                var select = joQuery["#select"];
+                if (select != null) { joQuery.Remove("#select"); }
+
+                // {"#item": "?x", "select": "username"}
+                foreach (var querySource in this.Items)
+                {
+                    if (querySource.Value.Type == JTokenType.Object)
+                    {
+                        var joQuerySource = (JObject)querySource.Value;
+                        var items = joQuerySource["items"];
+                        if (items == null) { continue; }
+                        var jaItems = (JArray)items;
+
+                        foreach (var item in jaItems)
+                        {
+                            var joItem = (JObject)item.DeepClone();
+
+                            var unification = Unification.Unify(joItem, joQuery);
+                            if (unification == null) { continue; }
+
+                            if (select == null)
+                            {
+                                joItem.Add("#unification", unification);
+                                result.Add(joItem);
+                            }
+                            else
+                            {
+                                var value = joItem[select.ToString()];
+                                result.Add(value);
+                            }
+                            
+                        }
+                    }
+                }
+            }
+            else if (query.Type == JTokenType.String) 
+            {
+                result.Add(query.ToString());
+            }
+
+            return result;
+        }
+
         public object GetConnection(string key = null)
         {
             if (key == null || key == "") { return this.DefaultConnection; }
@@ -95,9 +147,9 @@ namespace Mezcal
             else { this.Connections.Add(key, value); }
         }
 
-        public void Store(string key, object value, bool overwrite = true)
+        public void Store(string key, JToken value, bool overwrite = true)
         {
-            if (key.StartsWith("?"))
+            if (key.StartsWith("?") || key.StartsWith("$"))
             {
                 if (this.Variables.ContainsKey(key)) { if (overwrite == true) { this.Variables[key] = JToken.FromObject(value); } }
                 else { this.Variables.Add(key, JToken.FromObject(value)); }

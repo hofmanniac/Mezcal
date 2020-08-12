@@ -275,6 +275,15 @@ namespace Mezcal
                     if (newValue != null) { result[prop.Name] = newValue; }
                 }
             }
+            else if (result is JArray jaItems)
+            {
+                var newArray = new JArray();
+                foreach(var jaItem in jaItems)
+                {
+                    newArray.Add(ApplyUnification(jaItem, unification));
+                }
+                result = newArray;
+            }
             else if (result.Type == JTokenType.String)
             {
                 result = ApplyUnification(result.ToString(), unification);
@@ -322,6 +331,29 @@ namespace Mezcal
                 s = s.Replace("@date-file", DateTime.Today.ToString("yyyy-MM-dd"));
 
                 result = s;
+            }
+
+            return result;
+        }
+
+        public static JToken Replace(JToken item, string oldValue, string newValue)
+        {
+            JToken result = null;
+
+            if (item.Type == JTokenType.Object)
+            {
+                var joItem = (JObject)item.DeepClone();
+                foreach(var prop in joItem.Properties())
+                {
+                    prop.Value = Replace(prop.Value, oldValue, newValue);
+                }
+
+                return joItem;
+            }
+            else if (item.Type == JTokenType.String)
+            {
+                var jsItem = item.ToString();
+                result = jsItem.Replace(oldValue, newValue);
             }
 
             return result;

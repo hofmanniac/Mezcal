@@ -23,6 +23,8 @@ namespace Mezcal
             var initFile = JSONUtil.ReadFile(exePath + "\\init.json");
             if (initFile != null) // if it's there
             {
+                this._context.Trace("ini.json found - loaded");
+
                 this._context.Store("#init", initFile);
 
                 var joCommand = new JObject();
@@ -146,6 +148,12 @@ namespace Mezcal
         {
             //if (command["command"] == null) { return; }
             //string commandName = command["command"].ToString();
+
+            if (command["enabled"] != null)
+            {
+                var enabled = command["enabled"].ToString();
+                if (enabled == "false") { return; }
+            }
 
             ICommand comm = ResolveCommand(command);
             if (comm == null) { return; }

@@ -12,27 +12,23 @@ namespace Mezcal.Commands
         {
             string file = JSONUtil.GetText(command, "#run-script");
             if (file == null) { file = command["script"].ToString(); }
-
             file = context.ReplaceVariables(file);
+
+            System.IO.FileInfo fi = new System.IO.FileInfo(file);
+            var scriptDir = fi.Directory.FullName;
 
             JArray items = (JArray)JSONUtil.ReadFile(file);
 
             if (items == null)
             {
                 Console.WriteLine($"RunScript: Unable to read file {file}.");
+                return;
             }
-            else
-            {
-                foreach (var item in items)
-                {
-                    if (item["enabled"] != null)
-                    {
-                        var enabled = item["enabled"].ToString();
-                        if (enabled == "false") { continue; }
-                    }
 
-                    context.CommandEngine.RunCommand((JObject)item, context);
-                }
+            foreach (var item in items)
+            {
+                var commandItem = Unification.Replace(item, "#scriptDir", scriptDir);
+                context.CommandEngine.RunCommand(commandItem, context);
             }
         }
 

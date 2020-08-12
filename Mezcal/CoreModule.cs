@@ -23,10 +23,11 @@ namespace Mezcal
             if (commandName == null) { return null; }
             if (commandName == "load-json") { result = new LoadJSON(); }
             else if (commandName == "save-json") { result = new SaveJSON(); }
-            else if (commandName == "ui-prompt") { result = new UIPrompt(); }
+            else if (commandName == "prompt") { result = new PromptCommand(); }
             else if (commandName == "run-script") { result = new RunScript(); }
             else if (commandName == "communicate") { result = new Communicate(); }
             else if (commandName == "run-rules") { return new RunRules(); }
+            else if (commandName == "set-variable") { return new SetVariable(); }
 
             return result;
         }
