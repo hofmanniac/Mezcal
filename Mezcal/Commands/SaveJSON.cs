@@ -23,7 +23,7 @@ namespace Mezcal.Commands
             if (set != null) { item = (JToken)context.Fetch(set); }
             else if (rawItem != null) { item = rawItem; }
 
-            //Console.WriteLine("Saving {0} as {1}", source, file);
+            Console.WriteLine("Saving {0} as {1}", set, file);
             if (mode == "append") { JSONUtil.AppendToFile(item, file); }
             else { JSONUtil.WriteFile(item, file); }
         }

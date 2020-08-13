@@ -19,7 +19,7 @@ namespace Mezcal.Commands
             var items = context.Items.Keys.ToList();
             foreach (var item in items)
             {
-                var jtItem = (JToken)context.Items[item];
+                var jtItem = context.Items[item];
                 var results = this.FindRules(jtItem, query);
                 if (results == null) { continue; }
 
@@ -28,19 +28,17 @@ namespace Mezcal.Commands
                     var then = result["then"];
 
                     var unification = (JObject)result["#unification"];
+                    then = Unification.ApplyUnification(then, unification);
 
-                    if (then is JObject joThen)
+                    if (then is JObject)
                     {
-                        then = Unification.ApplyUnification(joThen, unification);
-
                         context.CommandEngine.RunCommand(then, context);
                     }
                     else if (then is JArray jCommands)
                     {
                         foreach (JObject joTokenCommand in jCommands)
                         {
-                            var jtCommandClone = Unification.ApplyUnification(joTokenCommand, unification);
-                            context.CommandEngine.RunCommand(jtCommandClone, context);
+                            context.CommandEngine.RunCommand(joTokenCommand, context);
                         }
                     }
                 }

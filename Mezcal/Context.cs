@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Mezcal.Connections;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,6 +24,23 @@ namespace Mezcal
             this.TraceLevel = 0;
         }
 
+        public JToken Resolve(JToken jToken)
+        {
+            //var jtItem = Unification.ApplyUnification(jToken, unification);
+            var jtItem = this.ReplaceVariables(jToken);
+
+            if (jtItem.Type == JTokenType.Object)
+            {
+                var joItem = (JObject)jtItem;
+                foreach (var prop in joItem.Properties())
+                {
+                    prop.Value = this.Query(prop.Value);
+                }
+                jtItem = joItem;
+            }
+
+            return jtItem;
+        }
         public JToken ReplaceVariables(JToken jtItem)
         {
             if (jtItem == null) { return null; }
@@ -53,7 +71,8 @@ namespace Mezcal
                 if (sItem.StartsWith("?"))
                 {
                     var storedItem = (JToken)this.Fetch(sItem);
-                    return this.ReplaceVariables(storedItem);
+                    if (storedItem != null) { return this.ReplaceVariables(storedItem); }
+                    else { return sItem; }
                 }
                 else
                 {
@@ -87,13 +106,14 @@ namespace Mezcal
 
         public JToken Query(JToken query)
         {
-            var result = new JArray();
-
             if (query.Type == JTokenType.Object)
             {
                 var joQuery = (JObject)query;
                 var select = joQuery["#select"];
-                if (select != null) { joQuery.Remove("#select"); }
+                if (select == null) { return query; }
+                else { joQuery.Remove("#select"); }
+
+                var result = new JArray();
 
                 // {"#item": "?x", "select": "username"}
                 foreach (var querySource in this.Items)
@@ -119,20 +139,34 @@ namespace Mezcal
                             }
                             else
                             {
-                                var value = joItem[select.ToString()];
-                                result.Add(value);
+                                var sSelect = select.ToString();
+
+                                if (sSelect == "*") { result.Add(joItem); }
+                                else
+                                {
+                                    var value = joItem[select.ToString()];
+                                    result.Add(value);
+                                }
                             }
                             
                         }
                     }
                 }
+
+                if (result.Count == 1) { return result.First; }
+                else { return result; }
+
+            }
+            else if (query.Type == JTokenType.Array)
+            {
+                return query;
             }
             else if (query.Type == JTokenType.String) 
             {
-                result.Add(query.ToString());
+                return query;
             }
 
-            return result;
+            return null;
         }
 
         public object GetConnection(string key = null)

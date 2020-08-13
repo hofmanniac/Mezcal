@@ -350,6 +350,17 @@ namespace Mezcal
 
                 return joItem;
             }
+            else if (item.Type == JTokenType.Array)
+            {
+                var newArray = new JArray();
+                var jaItems = (JArray)item;
+                foreach(var jtItem in jaItems)
+                {
+                    var newArrayItem = Replace(jtItem, oldValue, newValue);
+                    newArray.Add(newArrayItem);
+                }
+                result = newArray;
+            }
             else if (item.Type == JTokenType.String)
             {
                 var jsItem = item.ToString();

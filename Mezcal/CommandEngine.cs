@@ -135,38 +135,58 @@ namespace Mezcal
 
         public void RunCommand(JToken jtCommand, Context context)
         {
-            if (jtCommand is JObject jCommand)
+            if (jtCommand.Type == JTokenType.Object)
             {
-                //if (jCommand["output"] != null) { Console.WriteLine(jCommand["output"]); }
-                //else { context.CommandEngine.RunCommand(jCommand, context); }
+                jtCommand = context.Resolve(jtCommand);
+                var joCommand = (JObject)jtCommand;
 
-                this.RunCommand(jCommand, context);
+                //if (command["command"] == null) { return; }
+                //string commandName = command["command"].ToString();
+
+                if (joCommand["enabled"] != null)
+                {
+                    var enabled = joCommand["enabled"].ToString();
+                    if (enabled == "false") { return; }
+                }
+
+                ICommand comm = ResolveCommand(joCommand);
+                if (comm == null) { Console.WriteLine($"Warning - unable to resolve command {joCommand}"); return; }
+
+                try
+                {
+                    comm.Process(joCommand, context);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"CommandEngine: Error running {joCommand} - {ex.Message}.");
+                }
             }
         }
 
-        public void RunCommand(JObject command, Context context)
-        {
-            //if (command["command"] == null) { return; }
-            //string commandName = command["command"].ToString();
+        //public void RunCommand(JObject command, Context context)
+        //{
+        //    //if (command["command"] == null) { return; }
+        //    //string commandName = command["command"].ToString();
 
-            if (command["enabled"] != null)
-            {
-                var enabled = command["enabled"].ToString();
-                if (enabled == "false") { return; }
-            }
+        //    if (command["enabled"] != null)
+        //    {
+        //        var enabled = command["enabled"].ToString();
+        //        if (enabled == "false") { return; }
+        //    }
 
-            ICommand comm = ResolveCommand(command);
-            if (comm == null) { return; }
+        //    ICommand comm = ResolveCommand(command);
+        //    if (comm == null) { Console.WriteLine($"Warning - unable to resolve command {command}");  return; }
 
-            try
-            {
-                comm.Process(command, context);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"CommandEngine: Error running {command} - {ex.Message}.");
-            }
-        }
+        //    try
+        //    {
+        //        command = context.Resolve(command);
+        //        comm.Process(command, context);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"CommandEngine: Error running {command} - {ex.Message}.");
+        //    }
+        //}
 
         private ICommand ResolveCommand(JObject joCommand)
         {
