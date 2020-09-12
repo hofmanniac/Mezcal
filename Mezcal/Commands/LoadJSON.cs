@@ -22,7 +22,7 @@ namespace Mezcal.Commands
             file = context.ReplaceVariables(file);
 
             // perform the action
-            //Console.WriteLine("Loading JSON File {0} into {1}", file, set);
+            context.Trace($"Loading JSON File {file} into {set}");
             var sub = JSONUtil.ReadFile(file);
             context.Store(set, sub);
         }

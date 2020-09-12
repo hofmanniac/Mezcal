@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Mezcal.Connections
@@ -98,6 +99,25 @@ namespace Mezcal.Connections
             if (s != null) { result = Int32.Parse(s); }
 
             return result;
+        }
+
+        public static string SingleLine(JToken jToken)
+        {
+            var result = new StringBuilder();
+
+            bool inquotes = false;
+
+            foreach(var c in jToken.ToString())
+            {
+                if (c == '\r' || c == '\n' || c == '\t') { continue; }
+                if (c == '\"') { inquotes = !inquotes; }
+                if (!inquotes && c == ' ') { continue; }
+
+                result.Append(c);
+            }
+
+            //return jToken.ToString().Replace("\r\n", "").Replace("\t", "");
+            return result.ToString();
         }
     }
 }

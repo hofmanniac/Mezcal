@@ -286,7 +286,19 @@ namespace Mezcal
             }
             else if (result.Type == JTokenType.String)
             {
-                result = ApplyUnification(result.ToString(), unification);
+                var sResult = result.ToString();
+
+                // if is a direct variable 
+                if (sResult.StartsWith("?") && unification[sResult] != null)
+                {
+                    // grab from unification
+                    result = unification[sResult];
+                }
+                else
+                {
+                    // apply to the entire string
+                    result = ApplyUnification(sResult, unification);
+                }
             }
 
             return result;

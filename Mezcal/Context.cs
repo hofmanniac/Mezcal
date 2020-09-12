@@ -61,7 +61,8 @@ namespace Mezcal
                 JObject result = new JObject();
                 foreach(var prop in joItem.Properties())
                 {
-                    result.Add(prop.Name, this.ReplaceVariables(prop.Value));
+                    if (prop.Name == "#store") { result.Add(prop.Name, prop.Value); }
+                    else { result.Add(prop.Name, this.ReplaceVariables(prop.Value)); }
                 }
                 return result;
             }
@@ -181,16 +182,41 @@ namespace Mezcal
             else { this.Connections.Add(key, value); }
         }
 
-        public void Store(string key, JToken value, bool overwrite = true)
+        public void Store(string key, JToken value, StoreMode storeMode = StoreMode.Replace)
         {
             if (key.StartsWith("?") || key.StartsWith("$"))
             {
-                if (this.Variables.ContainsKey(key)) { if (overwrite == true) { this.Variables[key] = JToken.FromObject(value); } }
+                if (this.Variables.ContainsKey(key))
+                {
+                    if (storeMode == StoreMode.Replace)
+                    {
+                        this.Variables[key] = JToken.FromObject(value);
+                    }
+                    // if merging
+                    else if (storeMode == StoreMode.Merge)
+                    {
+                        // get the existing
+                        var existing = this.Variables[key];
+
+                        // convert to an object
+                        if (existing.Type == JTokenType.Object)
+                        {
+                            var joExisting = (JObject)existing;
+                            joExisting.Merge(value);
+                        }
+                    }
+                }
                 else { this.Variables.Add(key, JToken.FromObject(value)); }
             }
             else
             {
-                if (this.Items.ContainsKey(key)) { if (overwrite == true) { this.Items[key] = value; } }
+                if (this.Items.ContainsKey(key))
+                {
+                    if (storeMode == StoreMode.Replace)
+                    {
+                        this.Items[key] = value;
+                    }
+                }
                 else { this.Items.Add(key, value); }
             }
         }
@@ -208,5 +234,10 @@ namespace Mezcal
                 else { return null; }
             }
         }
+    }
+
+    public enum StoreMode
+    {
+        Replace, KeepExisting, Merge
     }
 }

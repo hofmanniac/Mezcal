@@ -24,7 +24,7 @@ namespace Mezcal.Commands
             var value = Console.ReadLine();
             Console.ForegroundColor = ConsoleColor.White;
 
-            var store = command["store"];
+            var store = command["#store"];
             if (store != null) { context.Store(store.ToString(), value); }
 
             var responses = command["responses"];

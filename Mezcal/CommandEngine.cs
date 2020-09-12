@@ -23,8 +23,7 @@ namespace Mezcal
             var initFile = JSONUtil.ReadFile(exePath + "\\init.json");
             if (initFile != null) // if it's there
             {
-                this._context.Trace("ini.json found - loaded");
-
+                this._context.Trace("init.json found - loaded");
                 this._context.Store("#init", initFile);
 
                 var joCommand = new JObject();
@@ -137,23 +136,39 @@ namespace Mezcal
         {
             if (jtCommand.Type == JTokenType.Object)
             {
+                // resolve the command (subsitute variables and resolve queries)
                 jtCommand = context.Resolve(jtCommand);
                 var joCommand = (JObject)jtCommand;
 
-                //if (command["command"] == null) { return; }
-                //string commandName = command["command"].ToString();
-
+                // check if commmand is disabled
                 if (joCommand["enabled"] != null)
                 {
                     var enabled = joCommand["enabled"].ToString();
                     if (enabled == "false") { return; }
                 }
 
+                // attempt to resolve the command (which module should handle)
                 ICommand comm = ResolveCommand(joCommand);
-                if (comm == null) { Console.WriteLine($"Warning - unable to resolve command {joCommand}"); return; }
+
+                // if unable to resolve (no command or module found)
+                if (comm == null) 
+                {
+                    // assume assertion for rules
+                    var assertCommand = new JObject();
+                    assertCommand.Add("#assert", joCommand.DeepClone());
+                    joCommand = assertCommand;
+                    comm = ResolveCommand(joCommand);
+
+                    // if still cannot resolve (unlikely) - inform the host
+                    if (comm == null)
+                    {
+                        Console.WriteLine($"Warning - unable to resolve command {joCommand}"); return; 
+                    }
+                }
 
                 try
                 {
+                    // run it!
                     comm.Process(joCommand, context);
                 }
                 catch (Exception ex)
@@ -162,31 +177,6 @@ namespace Mezcal
                 }
             }
         }
-
-        //public void RunCommand(JObject command, Context context)
-        //{
-        //    //if (command["command"] == null) { return; }
-        //    //string commandName = command["command"].ToString();
-
-        //    if (command["enabled"] != null)
-        //    {
-        //        var enabled = command["enabled"].ToString();
-        //        if (enabled == "false") { return; }
-        //    }
-
-        //    ICommand comm = ResolveCommand(command);
-        //    if (comm == null) { Console.WriteLine($"Warning - unable to resolve command {command}");  return; }
-
-        //    try
-        //    {
-        //        command = context.Resolve(command);
-        //        comm.Process(command, context);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"CommandEngine: Error running {command} - {ex.Message}.");
-        //    }
-        //}
 
         private ICommand ResolveCommand(JObject joCommand)
         {

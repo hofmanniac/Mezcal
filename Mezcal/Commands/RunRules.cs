@@ -28,6 +28,7 @@ namespace Mezcal.Commands
                     var then = result["then"];
 
                     var unification = (JObject)result["#unification"];
+                    unification.Add("?#", query);
                     then = Unification.ApplyUnification(then, unification);
 
                     if (then is JObject)
