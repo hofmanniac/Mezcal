@@ -48,12 +48,15 @@ namespace Mezcal.Commands
 
         internal JArray FindRules(JToken ruleSet, JToken query)
         {
-            var type = JSONUtil.GetText(ruleSet, "#type");
-            if (type != "rules") { return null; }
+            if (ruleSet.Type != JTokenType.Array) { return null; }
+
+            //var type = JSONUtil.GetText(ruleSet, "#type");
+            //if (type != "rules") { return null; }
 
             var results = new JArray();
 
-            var rules = (JArray)ruleSet["rules"];
+            //var rules = (JArray)ruleSet["rules"];
+            var rules = (JArray)ruleSet;
             if (rules == null) { return null; }
 
             //var testInput = query["input"].ToString();

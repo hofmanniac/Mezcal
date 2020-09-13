@@ -26,7 +26,9 @@ namespace Mezcal
             else if (commandName == "prompt") { result = new PromptCommand(); }
             else if (commandName == "run-script") { result = new RunScript(); }
             else if (commandName == "communicate") { result = new Communicate(); }
-            else if (commandName == "run-rules") { return new RunRules(); }
+            else if (commandName == "say") { result = new Communicate(); }
+            //else if (commandName == "run-rules") { return new RunRules(); }
+            else if (commandName == "assert") { return new Assert(); }
             else if (commandName == "store") { return new Store(); }
 
             return result;

@@ -13,6 +13,7 @@ namespace Mezcal.Commands
             // get default property
             var item = JSONUtil.GetToken(command, "communicate");
             if (item == null) { item = JSONUtil.GetToken(command, "#communicate"); }
+            if (item == null) { item = JSONUtil.GetToken(command, "#say"); }
 
             // get all other properties
             var select = JSONUtil.GetText(command, "select");

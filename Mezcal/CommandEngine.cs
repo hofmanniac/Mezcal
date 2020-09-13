@@ -27,7 +27,7 @@ namespace Mezcal
                 this._context.Store("#init", initFile);
 
                 var joCommand = new JObject();
-                joCommand.Add("command", "run-rules");
+                joCommand.Add("command", "assert");
                 var joQuery = new JObject();
                 joQuery.Add("#event", "engine-init");
                 joCommand.Add("query", joQuery);
@@ -114,7 +114,8 @@ namespace Mezcal
                 if (script == "exit") { break; }
 
                 var jCommand = new JObject();
-                jCommand.Add("command", "run-rules");
+                jCommand.Add("command", "assert");
+                //Command.Add("command", "assert");
                 var joInput = new JObject();
                 joInput.Add("input", script);
                 jCommand.Add("query", joInput);

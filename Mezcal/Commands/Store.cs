@@ -19,13 +19,16 @@ namespace Mezcal.Commands
             var mode = command["mode"];
             if (mode != null && mode.ToString() == "merge") { storeMode = StoreMode.Merge; }
 
-            if (storeMode == StoreMode.Merge)
+            if (command["#debug"] != null && command["#debug"].ToString() == "true")
             {
-                context.Trace($"Merging {JSONUtil.SingleLine(value)} into {varName}");
-            }
-            else
-            {
-                context.Trace($"Setting {varName} to {JSONUtil.SingleLine(value)}");
+                if (storeMode == StoreMode.Merge)
+                {
+                    context.Trace($"Merging {JSONUtil.SingleLine(value)} into {varName}");
+                }
+                else
+                {
+                    context.Trace($"Setting {varName} to {JSONUtil.SingleLine(value)}");
+                }
             }
 
             context.Store(varName, value, storeMode);
