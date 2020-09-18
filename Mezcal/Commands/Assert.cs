@@ -59,6 +59,7 @@ namespace Mezcal.Commands
 
         internal JArray FindRules(JToken ruleSet, JToken query, Context context)
         {
+            if (ruleSet == null) { return null; }
             if (ruleSet.Type != JTokenType.Array) { return null; }
 
             //if (ruleSet.Type != JTokenType.Object) { return null; }
@@ -99,7 +100,8 @@ namespace Mezcal.Commands
             if (when != null)
             {
                 // try the unification - will return null if not able to unify
-                var unification = this.Unify(when, query);
+                var unification = this.Unify(query, when);
+                //if (unification == null) { unification = this.Unify(when, query); }
 
                 if (unification != null) // was able to unify
                 {

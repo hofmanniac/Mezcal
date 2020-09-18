@@ -20,10 +20,22 @@ namespace Mezcal
             if (term1.Type == JTokenType.String || term2.Type == JTokenType.String)
             {
                 var sTerm1 = term1.ToString();
-                var sTerm2 = term2.ToString();
 
-                //return Text.TextbookUnifyStrings(sTerm1, sTerm2);
-                return Unify(sTerm1, sTerm2);
+                // if term1 is a standalone variable
+                if (sTerm1.StartsWith("?") && sTerm1.Contains(" ") == false)
+                {
+                    // then just unify it with term2
+                    var unification = new JObject();
+                    unification.Add(sTerm1, term2);
+                    return unification;
+                }
+                else
+                {
+                    var sTerm2 = term2.ToString();
+
+                    //return Text.TextbookUnifyStrings(sTerm1, sTerm2);
+                    return Unify(sTerm1, sTerm2);
+                }
             }
             else if (term1.Type == JTokenType.Object && term2.Type == JTokenType.Object)
             {
@@ -334,6 +346,10 @@ namespace Mezcal
                     {
                         var sItem = item.Value.ToString();
                         s = s.Replace(item.Name, sItem);
+                    }
+                    else if (item.Value.Type == JTokenType.Object)
+                    {
+                        s = s.Replace(item.Name, item.Value.ToString().Replace("\r\n","").Replace("\t",""));
                     }
                 }
 

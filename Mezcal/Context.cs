@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace Mezcal
@@ -77,11 +78,137 @@ namespace Mezcal
                 }
                 else
                 {
-                    return this.ReplaceVariables(sItem);
+                    var s = this.ReplaceVariables(sItem);
+                    s = this.ResolveItemPaths(s);
+                    return s;
                 }
             }
 
             return null;
+        }
+
+        private string ResolveItemPaths(string text)
+        {
+            // refactoring needed -
+            // this is a rough "first cut" at resolving item information from a path
+            // this is not an implementation of JSONPath, this is sort of a simplified
+            // version of JSONPath meant to specify item information easily
+
+            string result = text;
+
+            if (text.StartsWith("$") == false) { return result; }
+
+            string[] parts = text.Split('.');
+
+            JToken currentItem = null;
+
+            foreach(string part in parts)
+            {
+                if (part.StartsWith("$"))
+                {
+                    var token = part.Substring(1);
+                    currentItem = this.FindItemsByName(token);
+                }
+                else
+                {
+                    if (currentItem.Type == JTokenType.String)
+                    {
+                        currentItem = this.FindItemsByName(currentItem.ToString());
+                    }
+
+                    if (currentItem.Type == JTokenType.Object)
+                    {
+                        var joCurrentItem = (JObject)currentItem;
+                        if (joCurrentItem[part] != null)
+                        {
+                            currentItem = joCurrentItem[part];
+                        }
+                    }
+                    else if (currentItem.Type == JTokenType.Array)
+                    {
+                        foreach(var jtItem in currentItem)
+                        {
+                            if (jtItem.Type == JTokenType.Object)
+                            {
+                                var joItem = (JObject)jtItem;
+                                if (joItem[part] != null)
+                                {
+                                    currentItem = joItem[part];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (currentItem != null)
+            {
+                if (currentItem.Type == JTokenType.String)
+                {
+                    result = currentItem.ToString();
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Find items based on the item name
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>Returns matching items if found. Returns empty (non-null) array if none found.</returns>
+        public JToken FindItemsByName(string item)
+        {
+            var query = new JObject();
+            query.Add("item", item);
+            return this.FindItems(query, false);
+        }
+
+        /// <summary>
+        /// Find item based on the item name
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>A single object or null if none found. Returns the first matching item if multiple found.</returns>
+        public JObject FindItemByName(string item)
+        {
+            var query = new JObject();
+            query.Add("item", item);
+            var results = this.FindItems(query, false);
+
+            if (results.Count() > 0) { return (JObject)results[0]; }
+            else { return null; }
+        }
+
+        /// <summary>
+        /// Find items based on a template pattern
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="stopAfterFirst"></param>
+        /// <returns>Returns matching items if found. Returns empty (non-null) array if none found.</returns>
+        public JToken FindItems(JObject query, bool stopAfterFirst = true)
+        {
+            var results = new JArray();
+
+            foreach (var source in this.Items)
+            {
+                if (source.Value == null) { continue; }
+
+                foreach (var candidateItem in source.Value)
+                {
+                    var joItem = (JObject)candidateItem.DeepClone();
+
+                    var u = Unification.Unify(joItem, query);
+                    if (u == null) { continue; }
+
+                    joItem.Add("#unification", u);
+                    results.Add(joItem);
+
+                    if (stopAfterFirst) { return results[0]; }
+                }
+            }
+
+            return results;
         }
 
         public void Trace(string text, int level = 0)
