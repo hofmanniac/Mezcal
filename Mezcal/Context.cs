@@ -12,7 +12,7 @@ namespace Mezcal
     {
         private readonly Dictionary<string, object> Connections = null;
         public readonly Dictionary<string, JToken> Items = null;
-        public object DefaultConnection { get; set; }
+        //public object DefaultConnection { get; set; }
         public readonly Dictionary<string, JToken> Variables = null;
         public CommandEngine CommandEngine = null;
         public int TraceLevel {get; set;}
@@ -79,22 +79,22 @@ namespace Mezcal
                 else
                 {
                     var s = this.ReplaceVariables(sItem);
-                    s = this.ResolveItemPaths(s);
-                    return s;
+                    var jToken = this.ResolveItemPaths(s);
+                    return jToken;
                 }
             }
 
             return null;
         }
 
-        private string ResolveItemPaths(string text)
+        private JToken ResolveItemPaths(string text)
         {
             // refactoring needed -
             // this is a rough "first cut" at resolving item information from a path
             // this is not an implementation of JSONPath, this is sort of a simplified
             // version of JSONPath meant to specify item information easily
 
-            string result = text;
+            JToken result = text;
 
             if (text.StartsWith("$") == false) { return result; }
 
@@ -142,12 +142,12 @@ namespace Mezcal
                 }
             }
 
-            if (currentItem != null)
+            result = currentItem;
+
+            if (currentItem != null && currentItem.Type == JTokenType.Array)
             {
-                if (currentItem.Type == JTokenType.String)
-                {
-                    result = currentItem.ToString();
-                }
+                var jaCurrentItem = (JArray)currentItem;
+                if (jaCurrentItem.Count == 1) { result = jaCurrentItem[0]; }
             }
 
             return result;
@@ -297,17 +297,17 @@ namespace Mezcal
             return null;
         }
 
-        public object GetConnection(string key = null)
-        {
-            if (key == null || key == "") { return this.DefaultConnection; }
-            else { return this.Connections[key]; }
-        }
+        //public object GetConnection(string key)
+        //{
+        //    if (key == null || key == "") { return this.DefaultConnection; }
+        //    else { return this.Connections[key]; }
+        //}
 
-        public void AddConnection(string key, object value)
-        {
-            if (this.Connections.ContainsKey(key)) { this.Connections[key] = value; }
-            else { this.Connections.Add(key, value); }
-        }
+        //public void AddConnection(string key, object value)
+        //{
+        //    if (this.Connections.ContainsKey(key)) { this.Connections[key] = value; }
+        //    else { this.Connections.Add(key, value); }
+        //}
 
         public void Store(string key, JToken value, StoreMode storeMode = StoreMode.Replace)
         {

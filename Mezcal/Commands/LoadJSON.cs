@@ -3,11 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Mezcal.Connections;
+using System.Net.NetworkInformation;
 
 namespace Mezcal.Commands
 {
     public class LoadJSON : ICommand
     {
+        public static JToken Create(string file, string set)
+        {
+            var joCommand = new JObject();
+            joCommand.Add("file", file);
+            joCommand.Add("set", set);
+
+            return joCommand;
+        }
+
         public void Process(JObject command, Context context)
         {
             // get default property
@@ -27,6 +37,7 @@ namespace Mezcal.Commands
                 context.Trace($"Loading JSON File {file} into {set}");
             }
 
+            
             var sub = JSONUtil.ReadFile(file);
             context.Store(set, sub);
         }

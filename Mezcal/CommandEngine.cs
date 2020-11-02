@@ -14,10 +14,30 @@ namespace Mezcal
 
         public Context Context {get {return this._context;} }
 
+        public void LoadJSON(string file, string set)
+        {
+            var comm = Commands.LoadJSON.Create(file, set);
+            this.RunCommand(comm);
+        }
+
+        public void Assert(string assertion)
+        {
+            if (assertion.StartsWith("{"))
+            {
+                var jtAssertion = JToken.Parse(assertion);
+                var joCommand = new JObject();
+                joCommand.Add("#assert", jtAssertion);
+                this.RunCommand(joCommand)
+;            }
+        }
+
         public CommandEngine()
         {
-            this.InitEngine();
+            this.InitEngine();          
+        }
 
+        public void LoadInit()
+        {
             // look for init.json in .exe path
             var exePath = AppContext.BaseDirectory;
             var initFile = JSONUtil.ReadFile(exePath + "\\init.json");
@@ -66,26 +86,26 @@ namespace Mezcal
             string basePath = configFile["$basePath"].ToString();
             this._context.Variables.Add("$basePath", basePath);
 
-            var items = configFile["connections"];
+            //var items = configFile["connections"];
 
-            if (items != null)
-            {
-                foreach (var item in items)
-                {
-                    var envConfig = ConnectionConfig.GetConnectionConfig(item);
+            //if (items != null)
+            //{
+            //    foreach (var item in items)
+            //    {
+            //        var envConfig = ConnectionConfig.GetConnectionConfig(item);
 
-                    foreach (var module in this.Modules)
-                    {
-                        var conn = module.ProvideConnection(envConfig);
-                        if (conn != null)
-                        {
-                            this._context.AddConnection(envConfig.Name, conn);
+            //        foreach (var module in this.Modules)
+            //        {
+            //            var conn = module.ProvideConnection(envConfig);
+            //            if (conn != null)
+            //            {
+            //                this._context.AddConnection(envConfig.Name, conn);
 
-                            if (envConfig.IsDefault == true) { this._context.DefaultConnection = conn; }
-                        }
-                    }
-                }
-            }
+            //                if (envConfig.IsDefault == true) { this._context.DefaultConnection = conn; }
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         private void InitEngine()
@@ -131,6 +151,17 @@ namespace Mezcal
 
                 Console.WriteLine();
             }
+        }
+
+        public void RunCommand(JToken jtCommand)
+        {
+            this.RunCommand(jtCommand, this._context);
+        }
+
+        public void RunCommand(string command)
+        {
+            var jtCommand = JToken.Parse(command);
+            this.RunCommand(jtCommand, this._context);
         }
 
         public void RunCommand(JToken jtCommand, Context context)

@@ -9,7 +9,7 @@ namespace Mezcal
 {
     public interface IModule
     {
-        IConnection ProvideConnection(ConnectionConfig envConfig);
+        //IConnection ProvideConnection(ConnectionConfig envConfig);
 
         ICommand ResolveCommand(JObject joCommand);
     }

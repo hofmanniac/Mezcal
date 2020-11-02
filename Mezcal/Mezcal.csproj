@@ -7,10 +7,10 @@
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/hofmanniac/Mezcal</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
-    <PackageReleaseNotes>Ability to SetVariable;
-Enhancements to Unification to allow for full object unification and apply variables recursively.</PackageReleaseNotes>
+    <PackageReleaseNotes>Ability to Assert (forward chaining) rules.
+Misc. enhancements to existing commands to support assertion.</PackageReleaseNotes>
     <Copyright>2020</Copyright>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>
